@@ -84,11 +84,12 @@ The tool will index all logs found in the COS bucket that is used for your VPC F
 
 ### Indexing
 
-1. Index your existing logs by issuing the following command: 
+1. Index your existing flow logs by issuing the following command: 
     ```sh
     ./vpc-flowlogs-elasticsearch index
     ```
-    > Add a `--trace` if you want to see the POST and response body from each index request to Elasticsearch.  
+    > Add a `--trace` if you want to see the POST and response body from each index request to Elasticsearch.
+
 2. The tool indexes 25 flow logs at a time. The indexing process may take a while based on the number of flow logs in the COS bucket. You can view the status of the indexing process by viewing the `system.log` under the `logs` directory. Errors are in the `error.log`.
 
 ### Searching
@@ -99,8 +100,9 @@ The tool will index all logs found in the COS bucket that is used for your VPC F
     ```sh
       ./vpc-flowlogs-elasticsearch search --query top_5_target_ips
     ```
+    > Add a `--trace` if you want to see the POST and response body from each index request to Elasticsearch.
 
-## ##Using Postman or similar client
+#### Using Postman or similar client
   1. Review the `config/sample_queries.md` for example Elasticsearch endpoints and queries. 
 
 
