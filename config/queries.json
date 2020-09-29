@@ -1,0 +1,102 @@
+{
+  "queries": [
+    {
+      "name": "top_25_target_ips",
+      "description": "25 Top target IP addresses found ",
+      "command": {
+        "size": 0,
+        "aggregations" : {
+          "target_ips" : {
+            "terms" : { 
+              "field" : "flow_logs.target_ip.keyword",  
+              "size" : 25 
+              }
+          }
+        }
+      },
+      "output": [
+        {
+          "name": "address",
+          "valueof": "aggregations.target_ips.buckets.0.key"
+        },
+        {
+          "name": "address",
+          "valueof": "aggregations.target_ips.buckets.1.key"
+        },
+        {
+          "name": "address",
+          "valueof": "aggregations.target_ips.buckets.2.key"
+        },
+        {
+          "name": "address",
+          "valueof": "aggregations.target_ips.buckets.3.key"
+        },
+        {
+          "name": "address",
+          "valueof": "aggregations.target_ips.buckets.4.key"
+        }
+      ]
+    },
+    {
+      "name": "top_25_initiator_ips",
+      "description": "25 Top initiator IP addresses found",
+      "command": {
+        "size": 0,
+        "aggregations" : {
+          "initiator_ips" : {
+            "terms" : { 
+              "field" : "flow_logs.initiator_ip.keyword",  
+              "size" : 25 
+              }
+          }
+        }
+      },
+      "output": [
+        {
+          "name": "address",
+          "valueof": "aggregations.initiator_ips.buckets.0.key"
+        },
+        {
+          "name": "address",
+          "valueof": "aggregations.initiator_ips.buckets.1.key"
+        },
+        {
+          "name": "address",
+          "valueof": "aggregations.initiator_ips.buckets.2.key"
+        },
+        {
+          "name": "address",
+          "valueof": "aggregations.initiator_ips.buckets.3.key"
+        },
+        {
+          "name": "address",
+          "valueof": "aggregations.initiator_ips.buckets.4.key"
+        }
+      ]
+    },
+    {
+      "name": "default",
+      "command": {
+        "size": 0,
+        "aggregations" : {
+          "directions" : {
+            "terms" : { 
+              "field" : "flow_logs.direction.keyword",  
+              "size" : 2
+              }
+          }
+        }
+      },
+      "output": [
+        {
+          "name": "outbound",
+          "valueof": "aggregations.directions.buckets.0.doc_count"
+        },
+        {
+          "name": "inbound",
+          "valueof": "aggregations.directions.buckets.1.doc_count"
+        }
+      ]
+    }
+  ]
+}

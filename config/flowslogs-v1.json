@@ -1,0 +1,177 @@
+{
+  "mappings": {
+    "flowlog": {
+      "properties": {
+        "attached_endpoint_type": {
+          "type": "text",
+          "fields": {
+            "keyword": {
+              "type": "keyword",
+              "ignore_above": 256
+            }
+          }
+        },
+        "capture_end_time": {
+          "type": "date"
+        },
+        "capture_start_time": {
+          "type": "date"
+        },
+        "collector_crn": {
+          "type": "text",
+          "fields": {
+            "keyword": {
+              "type": "keyword",
+              "ignore_above": 256
+            }
+          }
+        },
+        "flow_logs": {
+          "properties": {
+            "action": {
+              "type": "text",
+              "fields": {
+                "keyword": {
+                  "type": "keyword",
+                  "ignore_above": 256
+                }
+              }
+            },
+            "bytes_from_initiator": {
+              "type": "long"
+            },
+            "bytes_from_target": {
+              "type": "long"
+            },
+            "connection_start_time": {
+              "type": "date"
+            },
+            "cumulative_bytes_from_initiator": {
+              "type": "long"
+            },
+            "cumulative_bytes_from_target": {
+              "type": "long"
+            },
+            "cumulative_packets_from_initiator": {
+              "type": "long"
+            },
+            "cumulative_packets_from_target": {
+              "type": "long"
+            },
+            "direction": {
+              "type": "text",
+              "fields": {
+                "keyword": {
+                  "type": "keyword",
+                  "ignore_above": 256
+                }
+              }
+            },
+            "end_time": {
+              "type": "text"
+            },
+            "ether_type": {
+              "type": "text",
+              "fields": {
+                "keyword": {
+                  "type": "keyword",
+                  "ignore_above": 256
+                }
+              }
+            },
+            "initiator_ip": {
+              "type": "text",
+              "fields": {
+                "keyword": {
+                  "type": "keyword",
+                  "ignore_above": 256
+                }
+              }
+            },
+            "initiator_port": {
+              "type": "long"
+            },
+            "packets_from_initiator": {
+              "type": "long"
+            },
+            "packets_from_target": {
+              "type": "long"
+            },
+            "start_time": {
+              "type": "text"
+            },
+            "target_ip": {
+              "type": "text",
+              "fields": {
+                "keyword": {
+                  "type": "keyword",
+                  "ignore_above": 256
+                }
+              }
+            },
+            "target_port": {
+              "type": "long"
+            },
+            "transport_protocol": {
+              "type": "long"
+            },
+            "was_initiated": {
+              "type": "boolean"
+            },
+            "was_terminated": {
+              "type": "boolean"
+            }
+          }
+        },
+        "instance_crn": {
+          "type": "text",
+          "fields": {
+            "keyword": {
+              "type": "keyword",
+              "ignore_above": 256
+            }
+          }
+        },
+        "network_interface_id": {
+          "type": "text",
+          "fields": {
+            "keyword": {
+              "type": "keyword",
+              "ignore_above": 256
+            }
+          }
+        },
+        "number_of_flow_logs": {
+          "type": "long"
+        },
+        "state": {
+          "type": "text",
+          "fields": {
+            "keyword": {
+              "type": "keyword",
+              "ignore_above": 256
+            }
+          }
+        },
+        "version": {
+          "type": "text",
+          "fields": {
+            "keyword": {
+              "type": "keyword",
+              "ignore_above": 256
+            }
+          }
+        },
+        "vpc_crn": {
+          "type": "text",
+          "fields": {
+            "keyword": {
+              "type": "keyword",
+              "ignore_above": 256
+            }
+          }
+        }
+      }
+    }
+  }
+}
