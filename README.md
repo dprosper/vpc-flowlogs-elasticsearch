@@ -3,7 +3,7 @@
 
 This command line tool lets you read your [VPC Flow Logs](https://cloud.ibm.com/docs/vpc?topic=vpc-flow-logs) from a Cloud Object Storage (COS) Bucket and index them to an Elasticsearch cluster running in the IBM Cloud. It also includes a basic search/results capability.  
 
-# Costs and Requirements
+## Costs and Requirements
 
 You must have a Pay-as-You-Go account in IBM Cloud&trade; to follow the steps in this repository to create resources. Since the costs for these resources will vary, use the [Pricing Calculator](https://cloud.ibm.com/estimator/review) to generate a cost estimate based on your projected usage.
 
@@ -19,7 +19,7 @@ In addition to having an existing VPC in IBM Cloud and configured VPC Flow Logs,
   -	[Go](https://golang.org/doc/install) version 1.15.x (If you choose to build the tool from source)
 
 
-### Install from releases binary
+## Install from releases binary
 
 You can install the binary from source [here](https://github.com/dprosper/vpc-flowlogs-elasticsearch)
 
@@ -38,7 +38,7 @@ You can install the binary from source [here](https://github.com/dprosper/vpc-fl
   ```
 
 
-#### Provision a Databases for Elasticsearch instance
+## Provision a Databases for Elasticsearch instance
 
 Create the Elasticsearch cluster.
 
@@ -68,7 +68,7 @@ Create the Elasticsearch cluster.
     ibmcloud resource service-key flowlogs-es-key --output json
     ```
 
-#### Create a bucket for storing indexed logs
+## Create a bucket for storing indexed logs
 
 The tool will index all logs found in the COS bucket that is used for your VPC Flow Logs, as each log is indexed it is deleted and move it to another bucket, you  need to provide a destination bucket for all the Flow Logs that have already been indexed. It needs to exist in the same instance as the bucket used by VPC Flow Logs. 
 
@@ -101,7 +101,7 @@ The tool will index all logs found in the COS bucket that is used for your VPC F
 
 - Using Postman or similar client
   1. Review the `config/sample_queries.md` for example Elasticsearch endpoints and queries. 
-  
+
 
 ## Issues
 
@@ -111,6 +111,7 @@ Please open *issues* here: [New Issue](https://github.com/dprosper/vpc-flowlogs-
 
 - [Use IBM Log Analysis with LogDNA to Analyze VPC Network Traffic from IBM Cloud Flow Logs for VPC](https://www.ibm.com/cloud/blog/use-ibm-log-analysis-with-logdna-to-analyze-vpc-network-traffic-from-ibm-cloud-flow-logs-for-vpc)
 - [vpc-flowlogs-logdna repository](https://github.com/IBM-Cloud/vpc-flowlogs-logdna)
+
 ## License
 
 See [License](LICENSE) for license information.
