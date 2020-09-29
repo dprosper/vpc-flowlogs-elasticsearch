@@ -10,9 +10,10 @@ You must have a Pay-as-You-Go account in IBM Cloud&trade; to follow the steps in
 In addition to having an existing VPC in IBM Cloud and configured VPC Flow Logs, this project requires the provisioning of an instance of Databases for Elasticsearch. Make sure to delete services when they are no longer required in order to not incur charges in your account.
 
 - [Account with IBM Cloud](https://cloud.ibm.com)
-- [Existing VPC](https://cloud.ibm.com/vpc-ext)
+- [Existing VPC](https://cloud.ibm.com/vpc-ext/overview)
 - [VPC Flow ogs already configured to write to a COS Bucket](https://cloud.ibm.com/vpc-ext/network/flowLogs)
 -	[IBM Cloud Databases for Elasticsearch](https://cloud.ibm.com/catalog/services/databases-for-elasticsearch) version 6.8
+  - The Elasticsearch client is specific to version 6.x
 
 - Install the following tools as needed: 
   - [IBM Cloud CLI](https://cloud.ibm.com/docs/cli?topic=cloud-cli-install-ibmcloud-cli) (If you prefer the command line over using the web console)
@@ -42,12 +43,12 @@ You can install the binary from source [here](https://github.com/dprosper/vpc-fl
 
 Create the Elasticsearch cluster.
 
-- IBM Cloud Web Console
+#### IBM Cloud Web Console
   1. Use the IBM Cloud Console to create a new instance of [Databases for Elasticsearch instance](https://cloud.ibm.com/catalog/services/databases-for-elasticsearch).
   
-  2. [Create Service Credentials](https://cloud.ibm.com/docs/databases-for-elasticsearch?topic=databases-for-elasticsearch-connection-strings#creating-users-from-_service-credentials_) which will be required to update the `flowlogs.json` file.
+  2. [Create Service Credentials](https://cloud.ibm.com/docs/databases-for-elasticsearch?topic=d atabases-for-elasticsearch-connection-strings#creating-users-from-_service-credentials_) which will be required to update the `flowlogs.json` file.
 
-- IBM Cloud CLI 
+#### IBM Cloud CLI 
   1. Create an instance of [Databases for Elasticsearch instance](https://cloud.ibm.com/catalog/services/databases-for-elasticsearch) using a **standard** plan. Replace **<region_name>** accordingly.
     ```sh
     ibmcloud resource service-instance-create flowlogs-es databases-for-elasticsearch databases-for-elasticsearch-standard <region_name>
@@ -92,14 +93,14 @@ The tool will index all logs found in the COS bucket that is used for your VPC F
 
 ### Searching
 
-- Using the tool
+#### Using the tool
   1. The `config/queries.json` file contains a few example queries: "top_5_target_ips", "top_5_initiator_ips", "total_direction_by_outbound_inbound". The output is a JSON array. 
 
     ```sh
       ./vpc-flowlogs-elasticsearch search --query top_5_target_ips
     ```
 
-- Using Postman or similar client
+## ##Using Postman or similar client
   1. Review the `config/sample_queries.md` for example Elasticsearch endpoints and queries. 
 
 
