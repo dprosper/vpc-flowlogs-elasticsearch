@@ -11,7 +11,7 @@ In addition to having an existing VPC in IBM Cloud and configured VPC Flow Logs,
 
 - [Account with IBM Cloud](https://cloud.ibm.com)
 - [Existing VPC](https://cloud.ibm.com/vpc-ext/overview)
-- [VPC Flow ogs already configured to write to a COS Bucket](https://cloud.ibm.com/vpc-ext/network/flowLogs)
+- [VPC Flow Logs already configured to write to a COS Bucket](https://cloud.ibm.com/vpc-ext/network/flowLogs)
 -	[IBM Cloud Databases for Elasticsearch](https://cloud.ibm.com/catalog/services/databases-for-elasticsearch) version 6.8
   - The Elasticsearch client is specific to version 6.x
 
