@@ -1,15 +1,15 @@
 {
   "queries": [
     {
-      "name": "top_25_target_ips",
-      "description": "25 Top target IP addresses found ",
+      "name": "top_5_target_ips",
+      "description": "5 Top target IP addresses found ",
       "command": {
         "size": 0,
         "aggregations" : {
           "target_ips" : {
             "terms" : { 
               "field" : "flow_logs.target_ip.keyword",  
-              "size" : 25 
+              "size" : 5 
               }
           }
         }
@@ -38,15 +38,15 @@
       ]
     },
     {
-      "name": "top_25_initiator_ips",
-      "description": "25 Top initiator IP addresses found",
+      "name": "top_5_initiator_ips",
+      "description": "5 Top initiator IP addresses found",
       "command": {
         "size": 0,
         "aggregations" : {
           "initiator_ips" : {
             "terms" : { 
               "field" : "flow_logs.initiator_ip.keyword",  
-              "size" : 25 
+              "size" : 5 
               }
           }
         }
@@ -75,7 +75,7 @@
       ]
     },
     {
-      "name": "default",
+      "name": "total_direction_by_outbound_inbound",
       "command": {
         "size": 0,
         "aggregations" : {
