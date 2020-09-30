@@ -97,8 +97,9 @@
 ```
 
 ### https://<elasticsearch_cluster_hostname>:<elasticsearch_cluster_port>/ibm_vpc_flowlogs_v1/\_search?scroll=1m
+> **Endpoint with scroll token to paginate through results**
 
-#### All logs with 50 page size and scroll token to paginate through results
+#### All logs with 50 page size
 
 ```json
 {
@@ -109,7 +110,7 @@
 }
 ```
 
-#### All logs between yesterday and today with 50 page size and scroll token to paginate through results
+#### All logs between yesterday and today with 50 page size
 
 ```json
 {
@@ -125,7 +126,7 @@
 }
 ```
 
-#### All logs from a specific VPC instance, targetting a specific IP and port numbner within the last 14 days with 50 page size and scroll token to paginate through results
+#### All logs from a specific VPC instance, targetting a specific IP and port number within the last 14 days with 50 page size
 
 ```json
 {
