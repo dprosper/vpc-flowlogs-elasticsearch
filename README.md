@@ -66,7 +66,7 @@ Create the Elasticsearch cluster.
   2. [Create Service Credentials](https://cloud.ibm.com/docs/databases-for-elasticsearch?topic=databases-for-elasticsearch-connection-strings#creating-users-from-_service-credentials_) which will be required to update the `flowlogs.json` file.
 
 #### IBM Cloud CLI 
-  1. Create an instance of [Databases for Elasticsearch instance](https://cloud.ibm.com/catalog/services/databases-for-elasticsearch) using a **standard** plan. Replace **<region_name>** accordingly.
+1. Create an instance of [Databases for Elasticsearch instance](https://cloud.ibm.com/catalog/services/databases-for-elasticsearch) using a **standard** plan. Replace **<region_name>** accordingly.
     ```sh
     ibmcloud resource service-instance-create flowlogs-es databases-for-elasticsearch databases-for-elasticsearch-standard <region_name>
     ```
@@ -76,12 +76,12 @@ Create the Elasticsearch cluster.
     ibmcloud resource service-instance flowlogs-es
     ```
 
-  2. Once you have verified the service status changed to "create succeeded", you may proceed to create a service key:
+2. Once you have verified the service status changed to "create succeeded", you may proceed to create a service key:
     ```sh
     ibmcloud resource service-key-create flowlogs-es-key --instance-name flowlogs-es
     ```
 
-  3. Obtain the service key details in JSON format and use the information provided to populate the relevant values for `elasticsearch` in the **flowlogs.json**.
+3. Obtain the service key details in JSON format and use the information provided to populate the relevant values for `elasticsearch` in the **flowlogs.json**.
     ```sh
     ibmcloud resource service-key flowlogs-es-key --output json
     ```
@@ -119,7 +119,7 @@ The tool will index all logs found in the COS bucket that is used for your VPC F
     ```sh
       ./vpc-flowlogs-elasticsearch search --query top_5_target_ips
     ```
-    
+
     > Add a `--trace` if you want to see the POST and response body from each index request to Elasticsearch.
 
 #### Using Postman or similar client
