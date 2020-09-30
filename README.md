@@ -122,7 +122,7 @@ The tool will index all logs found in the COS bucket that is used for your VPC F
 
     > Add a `--trace` if you want to see the POST and response body from each index request to Elasticsearch.
 
-#### Using Postman or similar client
+#### Using [Postman](https://www.postman.com/downloads/) or similar client
   1. Review the `config/sample_queries.md` for example Elasticsearch endpoints and queries. 
 
 
