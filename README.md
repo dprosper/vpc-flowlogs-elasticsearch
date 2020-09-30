@@ -18,6 +18,7 @@ In addition to having an existing VPC in IBM Cloud and configured VPC Flow Logs,
 - Install the following tools as needed: 
   - [IBM Cloud CLI](https://cloud.ibm.com/docs/cli?topic=cloud-cli-install-ibmcloud-cli) (If you prefer the command line over using the web console)
   -	[Go](https://golang.org/doc/install) version 1.15.x (If you choose to build the tool from source)
+  -	[Docker](https://docs.docker.com/get-docker/) (If you choose to build the tool from source but don't want to install GO)
 
 
 ## Install from releases binary
@@ -33,11 +34,27 @@ You can install the binary from source [here](https://github.com/dprosper/vpc-fl
   git clone git@github.com:dprosper/vpc-flowlogs-elasticsearch.git
   ```
 
-2. Build
+2. Build from your local machine
   ```sh
   go build
   ```
+  
+  Build using Docker for target OS:
 
+  Mac OS
+  ```sh
+  docker run --rm -v "$PWD":/usr/src/vpc-flowlogs-elasticsearch -w /usr/src/vpc-flowlogs-elasticsearch -e GOOS=darwin -e GOARCH=amd64 golang:latest go build -v
+  ```
+
+  Linux
+  ```sh
+  docker run --rm -v "$PWD":/usr/src/vpc-flowlogs-elasticsearch -w /usr/src/vpc-flowlogs-elasticsearch -e GOOS=linux -e GOARCH=amd64 golang:latest go build -v
+  ```
+
+  Windows
+  ```sh
+  docker run --rm -v "$PWD":/usr/src/vpc-flowlogs-elasticsearch -w /usr/src/vpc-flowlogs-elasticsearch -e GOOS=windows -e GOARCH=amd64 golang:latest go build -v
+  ```
 
 ## Provision a Databases for Elasticsearch instance
 
