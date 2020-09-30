@@ -97,6 +97,20 @@
           "valueof": "aggregations.directions.buckets.1.doc_count"
         }
       ]
+    },
+    {
+      "name": "output_ommitted_es_response_body_used",
+      "command": {
+        "size": 0,
+        "aggregations" : {
+          "directions" : {
+            "terms" : { 
+              "field" : "flow_logs.direction.keyword",  
+              "size" : 2
+              }
+          }
+        }
+      }
     }
   ]
 }

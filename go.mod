@@ -6,6 +6,7 @@ require (
 	github.com/IBM/ibm-cos-sdk-go v1.4.0
 	github.com/dustin/go-humanize v1.0.0
 	github.com/elastic/go-elasticsearch/v6 v6.8.10
+	github.com/manifoldco/promptui v0.8.0
 	github.com/spf13/cobra v1.0.0
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/spf13/viper v1.4.0

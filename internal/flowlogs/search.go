@@ -27,6 +27,7 @@ import (
 	"github.com/dprosper/vpc-flowlogs-elasticsearch/internal/logger"
 	"github.com/elastic/go-elasticsearch/v6"
 	"github.com/elastic/go-elasticsearch/v6/estransport"
+	"github.com/manifoldco/promptui"
 	"github.com/spf13/viper"
 	"github.com/tidwall/gjson"
 
@@ -107,6 +108,25 @@ func search(queryName string, trace bool) (result *map[string]interface{}) {
 	}
 
 	queries, _ := ioutil.ReadFile("config/queries.json")
+
+	if queryName == "" {
+		queryList := gjson.GetBytes(queries, "queries.#.name")
+		var items []string
+		for _, name := range queryList.Array() {
+			items = append(items, name.String())
+		}
+		prompt := promptui.Select{
+			Label: "Select a query",
+			Items: items,
+		}
+		_, queryName, err = prompt.Run()
+
+		if err != nil {
+			logger.ErrorLogger.Error("Error prompting for query", zap.String("error: ", err.Error()))
+			return
+		}
+	}
+
 	query := gjson.GetBytes(queries, "queries.#(name==\""+queryName+"\").command")
 	var buf bytes.Buffer
 
@@ -132,22 +152,27 @@ func search(queryName string, trace bool) (result *map[string]interface{}) {
 	var qr []queryResult
 
 	output := gjson.GetBytes(queries, "queries.#(name==\""+queryName+"\").output")
+	var commandResult []byte
+	if output.String() != "" {
+		output.ForEach(func(key, value gjson.Result) bool {
+			name := gjson.Get(value.String(), "name").String()
+			valueof := gjson.Get(value.String(), "valueof").String()
+			r := queryResult{Name: name, Value: gjson.GetBytes(body, valueof).String()}
+			qr = append(qr, r)
 
-	output.ForEach(func(key, value gjson.Result) bool {
-		name := gjson.Get(value.String(), "name").String()
-		valueof := gjson.Get(value.String(), "valueof").String()
-		r := queryResult{Name: name, Value: gjson.GetBytes(body, valueof).String()}
-		qr = append(qr, r)
+			return true // keep iterating
+		})
 
-		return true // keep iterating
-	})
-
-	commandResult, err := json.Marshal(qr)
-	if err != nil {
-		logger.ErrorLogger.Error("Error in marshalling results", zap.String("error: ", err.Error()))
-		return
+		commandResult, err = json.Marshal(qr)
+		if err != nil {
+			logger.ErrorLogger.Error("Error in marshalling results", zap.String("error: ", err.Error()))
+			return
+		}
+	} else {
+		commandResult = body
 	}
-	println(string(commandResult))
+
+	fmt.Println(string(commandResult))
 
 	return
 
