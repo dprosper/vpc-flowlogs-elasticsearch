@@ -33,7 +33,6 @@ func init() {
 	rootCmd.AddCommand(searchCmd)
 
 	searchCmd.Flags().StringVar(&query, "query", "", "name of the query to run")
-	searchCmd.MarkFlagRequired("query")
 
 	searchCmd.Flags().BoolVar(&trace, "trace", false, "When set will add elasticsearch request and response body to the output")
 }
