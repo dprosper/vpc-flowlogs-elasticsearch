@@ -54,8 +54,8 @@ func bulkIndex(trace bool) error {
 
 	var (
 		countSuccessful   uint64
-		apiKey            = viper.GetString("cos.apiKey")
-		serviceInstanceID = viper.GetString("cos.serviceInstanceID")
+		apiKey            = viper.GetString("cos.apikey")
+		serviceInstanceID = viper.GetString("cos.resource_instance_id")
 		authEndpoint      = viper.GetString("ibmcloud.iamUrl")
 		serviceEndpoint   = viper.GetString("cos.serviceEndpoint")
 		bucketsLocation   = viper.GetString("cos.bucketsLocation")
@@ -95,6 +95,9 @@ func bulkIndex(trace bool) error {
 			Username:  esUsername,
 			Password:  esPassword,
 			CACert:    cert,
+			Logger: &estransport.ColorLogger{
+				Output: os.Stdout,
+			},
 		}
 	}
 
@@ -176,6 +179,8 @@ func bulkIndex(trace bool) error {
 			return fmt.Errorf("cosClient.ListObjectsV2: %v", err)
 		}
 
+		logger.SystemLogger.Info(fmt.Sprintf("Bulk indexing 25 or less objects from: %s", sourceBucketName))
+
 		for _, object := range objects.Contents {
 
 			key := *object.Key
@@ -204,7 +209,7 @@ func bulkIndex(trace bool) error {
 
 					OnSuccess: func(ctx context.Context, item esutil.BulkIndexerItem, res esutil.BulkIndexerResponseItem) {
 						atomic.AddUint64(&countSuccessful, 1)
-						logger.SystemLogger.Info(fmt.Sprintf("[%s] Indexed in bulk.", sha256DocumentID))
+						// logger.SystemLogger.Debug(fmt.Sprintf("[%s] Indexed.", sha256DocumentID))
 
 						copyObjectInput := s3.CopyObjectInput{
 							Bucket:     aws.String(indexedBucketName),
@@ -243,6 +248,8 @@ func bulkIndex(trace bool) error {
 			}
 
 		}
+
+		// logger.SystemLogger.Info(fmt.Sprintf("Completed bulk indexing of 25 or less objects from: %s", sourceBucketName))
 
 		if *objects.IsTruncated {
 			continuationToken = *objects.NextContinuationToken

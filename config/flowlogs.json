@@ -12,14 +12,15 @@
     "indexMapping": "flowslogs-v1.json"
   },
   "cos": {
+    "apikey": "<provide_value>",
+    "resource_instance_id": "<provide_value>",
     "serviceEndpoint": "<provide_value>",
-    "apiKey": "<provide_value>",
     "bucketsLocation": "<provide_value>",
     "sourceBucketName": "<provide_value>",
     "indexedBucketName": "<provide_value>",
     "serviceInstanceID": "<provide_value>"
   },
   "ibmcloud": {
-    "iamUrl": "https://iam.cloud.ibm.com/identity/token",
+    "iamUrl": "https://iam.cloud.ibm.com/identity/token"
   }
 }
