@@ -5,7 +5,7 @@ This command line tool lets you read your [VPC Flow Logs](https://cloud.ibm.com/
 
 ## Costs and Requirements
 
-You must have a Pay-as-You-Go account in IBM Cloud&trade; to follow the steps in this repository to create resources. Since the costs for these resources will vary, use the [Pricing Calculator](https://cloud.ibm.com/estimator/review) to generate a cost estimate based on your projected usage.
+You must have a Pay-as-You-Go account in IBM Cloud&trade; to follow the steps in this repository to create resources. Since the costs for these resources will vary, use the [Cost Estimator](https://cloud.ibm.com/estimator/review) to generate a cost estimate based on your projected usage.
 
 In addition to having an existing VPC in IBM Cloud and configured VPC Flow Logs, this project requires the provisioning of an instance of Databases for Elasticsearch. Make sure to delete services when they are no longer required in order to not incur charges in your account.
 
@@ -46,7 +46,7 @@ Create the Elasticsearch cluster.
 #### IBM Cloud Web Console
   1. Use the IBM Cloud Console to create a new instance of [Databases for Elasticsearch instance](https://cloud.ibm.com/catalog/services/databases-for-elasticsearch).
   
-  2. [Create Service Credentials](https://cloud.ibm.com/docs/databases-for-elasticsearch?topic=d atabases-for-elasticsearch-connection-strings#creating-users-from-_service-credentials_) which will be required to update the `flowlogs.json` file.
+  2. [Create Service Credentials](https://cloud.ibm.com/docs/databases-for-elasticsearch?topic=databases-for-elasticsearch-connection-strings#creating-users-from-_service-credentials_) which will be required to update the `flowlogs.json` file.
 
 #### IBM Cloud CLI 
   1. Create an instance of [Databases for Elasticsearch instance](https://cloud.ibm.com/catalog/services/databases-for-elasticsearch) using a **standard** plan. Replace **<region_name>** accordingly.
@@ -78,9 +78,10 @@ The tool will index all logs found in the COS bucket that is used for your VPC F
 
 ### Configuring
 
-1. Create a directory called `.flowlogs` under the home directory of the current user.  
-2. Copy the `config/flowlogs.json` to your the `~/.flowlogs` directory. 
-3. Edit the `~./flowlogs.json` file and replace all instances of `<provide_value>` with the relevant values for COS and Elasticsearch captured above.
+1. Copy the `config/flowlogs.json` to your the `$HOME` directory of the current user. 
+2. Edit the `~./flowlogs.json` file and replace all instances of `<provide_value>` with the relevant values for COS and Elasticsearch captured above.
+ 
+ > You can place the `flowlogs.json` file in any directory of your choice and pass the `--config` flag with the location of the file to any of the commands below.
 
 ### Indexing
 
