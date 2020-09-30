@@ -23,7 +23,7 @@ In addition to having an existing VPC in IBM Cloud and configured VPC Flow Logs,
 
 ## Install from releases binary
 
-You can install the binary from source [here](https://github.com/dprosper/vpc-flowlogs-elasticsearch)
+You can install the binary from source [here](https://github.com/dprosper/vpc-flowlogs-elasticsearch/releases)
 
 
 ## Build and install from source
