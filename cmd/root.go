@@ -46,7 +46,10 @@ func Execute() {
 
 func init() {
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
+
 	cobra.OnInitialize(initConfig)
+	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "configuation file (default is $HOME/.flowlogs.json)")
+
 }
 
 // initConfig reads in config file and ENV variables if set.
@@ -55,14 +58,15 @@ func initConfig() {
 	if cfgFile != "" {
 		viper.SetConfigFile(cfgFile)
 	} else {
-		viper.AddConfigPath("$HOME/.flowlogs")
+		viper.AddConfigPath("$HOME")
 		viper.SetConfigName("flowlogs")
 	}
 
 	viper.AutomaticEnv()
 	logger.InitLogger()
 
-	if err := viper.ReadInConfig(); err == nil {
-		log.Println("Using config file:", viper.ConfigFileUsed())
+	err := viper.ReadInConfig()
+	if err != nil {
+		log.Fatalln("configuration file not found or not provided. see help")
 	}
 }
