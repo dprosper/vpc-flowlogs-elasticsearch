@@ -16,6 +16,7 @@ limitations under the License.
 package logger
 
 import (
+	"os"
 	"path"
 
 	"go.uber.org/zap"
@@ -31,13 +32,14 @@ var ErrorLogger *zap.Logger
 
 // InitLogger function
 func InitLogger() {
-	systemLogWriter := getLogWriter("system.log")
-	systemCore := zapcore.NewCore(getFileEncoder(), systemLogWriter, zapcore.DebugLevel)
+	systemCore := zapcore.NewTee(
+		zapcore.NewCore(getFileEncoder(), getLogWriter("system.log"), zapcore.DebugLevel),
+		zapcore.NewCore(getConsoleEncoder(), zapcore.AddSync(os.Stdout), zapcore.InfoLevel),
+	)
 	SystemLogger = zap.New(systemCore, zap.AddCaller())
 	defer SystemLogger.Sync()
 
-	errorLogWriter := getLogWriter("error.log")
-	errorCore := zapcore.NewCore(getFileEncoder(), errorLogWriter, zapcore.DebugLevel)
+	errorCore := zapcore.NewCore(getFileEncoder(), getLogWriter("error.log"), zapcore.DebugLevel)
 	ErrorLogger = zap.New(errorCore, zap.AddCaller(), zap.AddStacktrace(zap.ErrorLevel))
 	defer ErrorLogger.Sync()
 }
@@ -48,6 +50,12 @@ func getFileEncoder() zapcore.Encoder {
 	encoderConfig.MessageKey = "message"
 	encoderConfig.TimeKey = "timestamp"
 	return zapcore.NewJSONEncoder(encoderConfig)
+}
+
+func getConsoleEncoder() zapcore.Encoder {
+	encoderConfig := zap.NewProductionEncoderConfig()
+	encoderConfig.EncodeTime = zapcore.ISO8601TimeEncoder
+	return zapcore.NewConsoleEncoder(encoderConfig)
 }
 
 func getLogWriter(filename string) zapcore.WriteSyncer {
