@@ -13,7 +13,7 @@ This repository assumes that you have an existing VPC that is configured with a 
 
 When executed the tool will: 
   - read(3) all flow logs objects from the flow logs bucket(2), 
-  - index to Elasticsearch,
+  - index to Elasticsearch(6),
   - delete the indexed objects from the flow logs bucket(2) and write them to he indexed flow logs bucket(5),
   - once indexed in Elasticsearch the tool can be used to query Elasticsearch or another tool such as Postman can also be used.
 
