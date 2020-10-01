@@ -6,7 +6,7 @@ The `vpc-flowlogs-elasticsearch` command line tool ("the tool"), lets you read y
   ![Architecture](docs/architecture.png)
 
 This repository assumes that you have an existing VPC that is configured with a Flow Logs collector(1) to write to a COS bucket(2). The tool requires: 
-  - a second bucket(5) to be created within the same COS instance to store all flow logs that have previously been indexed. 
+  - a second bucket(5) to be created within the same COS instance to store all flow logs that have previously been indexed,
   - a Database for Elasticsearch instance to exist (can be any IBM Cloud region).
 
 When executed the tool will: 
