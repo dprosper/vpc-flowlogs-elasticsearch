@@ -1,76 +1,44 @@
 {
   "queries": [
     {
-      "name": "top_5_target_ips",
-      "description": "5 Top target IP addresses found ",
+      "name": "top_25_target_ips",
+      "description": "25 Top target IP addresses found ",
       "command": {
         "size": 0,
-        "aggregations" : {
-          "target_ips" : {
-            "terms" : { 
-              "field" : "flow_logs.target_ip.keyword",  
-              "size" : 5 
-              }
+        "aggregations": {
+          "target_ips": {
+            "terms": {
+              "field": "flow_logs.target_ip.keyword",
+              "size": 25
+            }
           }
         }
       },
       "output": [
         {
           "name": "address",
-          "valueof": "aggregations.target_ips.buckets.0.key"
-        },
-        {
-          "name": "address",
-          "valueof": "aggregations.target_ips.buckets.1.key"
-        },
-        {
-          "name": "address",
-          "valueof": "aggregations.target_ips.buckets.2.key"
-        },
-        {
-          "name": "address",
-          "valueof": "aggregations.target_ips.buckets.3.key"
-        },
-        {
-          "name": "address",
-          "valueof": "aggregations.target_ips.buckets.4.key"
+          "valueof": "aggregations.target_ips.buckets.#.key"
         }
       ]
     },
     {
-      "name": "top_5_initiator_ips",
-      "description": "5 Top initiator IP addresses found",
+      "name": "top_10_initiator_ips",
+      "description": "10 Top initiator IP addresses found",
       "command": {
         "size": 0,
-        "aggregations" : {
-          "initiator_ips" : {
-            "terms" : { 
-              "field" : "flow_logs.initiator_ip.keyword",  
-              "size" : 5 
-              }
+        "aggregations": {
+          "initiator_ips": {
+            "terms": {
+              "field": "flow_logs.initiator_ip.keyword",
+              "size": 10
+            }
           }
         }
       },
       "output": [
         {
           "name": "address",
-          "valueof": "aggregations.initiator_ips.buckets.0.key"
-        },
-        {
-          "name": "address",
-          "valueof": "aggregations.initiator_ips.buckets.1.key"
-        },
-        {
-          "name": "address",
-          "valueof": "aggregations.initiator_ips.buckets.2.key"
-        },
-        {
-          "name": "address",
-          "valueof": "aggregations.initiator_ips.buckets.3.key"
-        },
-        {
-          "name": "address",
-          "valueof": "aggregations.initiator_ips.buckets.4.key"
+          "valueof": "aggregations.initiator_ips.buckets.#.key"
         }
       ]
     },
@@ -78,12 +46,12 @@
       "name": "total_direction_by_outbound_inbound",
       "command": {
         "size": 0,
-        "aggregations" : {
-          "directions" : {
-            "terms" : { 
-              "field" : "flow_logs.direction.keyword",  
-              "size" : 2
-              }
+        "aggregations": {
+          "directions": {
+            "terms": {
+              "field": "flow_logs.direction.keyword",
+              "size": 2
+            }
           }
         }
       },
@@ -102,15 +70,95 @@
       "name": "output_ommitted_es_response_body_used",
       "command": {
         "size": 0,
-        "aggregations" : {
-          "directions" : {
-            "terms" : { 
-              "field" : "flow_logs.direction.keyword",  
-              "size" : 2
-              }
+        "aggregations": {
+          "directions": {
+            "terms": {
+              "field": "flow_logs.direction.keyword",
+              "size": 2
+            }
           }
         }
       }
+    },
+    {
+      "name": "14_days_top_5_rejected_by_target_ip",
+      "command": {
+        "query": {
+          "bool": {
+            "must": [
+              {
+                "match": {
+                  "flow_logs.action": "rejected"
+                }
+              }
+            ],
+            "filter": [
+              {
+                "range": {
+                  "capture_start_time": {
+                    "gte": "now-14d/d",
+                    "lt": "now/d"
+                  }
+                }
+              }
+            ]
+          }
+        },
+        "aggregations": {
+          "target_ips": {
+            "terms": {
+              "field": "flow_logs.target_ip.keyword",
+              "size": 5
+            }
+          }
+        }
+      },
+      "output": [
+        {
+          "name": "Target IP",
+          "valueof": "aggregations.target_ips.buckets.#.key"
+        }
+      ]
+    },
+    {
+      "name": "14_days_top_10_rejected_by_initiator_ip",
+      "command": {
+        "query": {
+          "bool": {
+            "must": [
+              {
+                "match": {
+                  "flow_logs.action": "rejected"
+                }
+              }
+            ],
+            "filter": [
+              {
+                "range": {
+                  "capture_start_time": {
+                    "gte": "now-14d/d",
+                    "lt": "now/d"
+                  }
+                }
+              }
+            ]
+          }
+        },
+        "aggregations": {
+          "initiator_ips": {
+            "terms": {
+              "field": "flow_logs.initiator_ip.keyword",
+              "size": 10
+            }
+          }
+        }
+      },
+      "output": [
+        {
+          "name": "Initiator IP",
+          "valueof": "aggregations.initiator_ips.buckets.#.key"
+        }
+      ]
     }
   ]
 }

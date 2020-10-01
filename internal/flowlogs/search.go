@@ -23,6 +23,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"strings"
 
 	"github.com/dprosper/vpc-flowlogs-elasticsearch/internal/logger"
 	"github.com/elastic/go-elasticsearch/v6"
@@ -101,11 +102,12 @@ func search(queryName string, trace bool) (result *map[string]interface{}) {
 
 	if res.IsError() {
 		logger.ErrorLogger.Error("Error in getting Client Info", zap.String("error: ", res.String()))
-	} else {
-		body, _ := ioutil.ReadAll(res.Body)
-		serverVersion := gjson.GetBytes(body, "version.number")
-		logger.SystemLogger.Info("Client Info", zap.String("Client version:", elasticsearch.Version), zap.String("Server version:", serverVersion.String()))
 	}
+	// else {
+	// 	body, _ := ioutil.ReadAll(res.Body)
+	// 	serverVersion := gjson.GetBytes(body, "version.number")
+	// 	logger.SystemLogger.Info("Client Info", zap.String("Client version:", elasticsearch.Version), zap.String("Server version:", serverVersion.String()))
+	// }
 
 	queries, _ := ioutil.ReadFile("config/queries.json")
 
@@ -157,9 +159,23 @@ func search(queryName string, trace bool) (result *map[string]interface{}) {
 		output.ForEach(func(key, value gjson.Result) bool {
 			name := gjson.Get(value.String(), "name").String()
 			valueof := gjson.Get(value.String(), "valueof").String()
-			r := queryResult{Name: name, Value: gjson.GetBytes(body, valueof).String()}
-			qr = append(qr, r)
 
+			if strings.Contains(valueof, "#") {
+				before := valueof[0:strings.Index(valueof, ".#")]
+				after := valueof[strings.LastIndex(valueof, "#.")+2 : len(valueof)]
+
+				buckets := gjson.GetBytes(body, before)
+				buckets.ForEach(func(key, value gjson.Result) bool {
+					r := queryResult{Name: name, Value: gjson.Get(value.String(), after).String()}
+					qr = append(qr, r)
+
+					return true
+				})
+
+			} else {
+				r := queryResult{Name: name, Value: gjson.GetBytes(body, valueof).String()}
+				qr = append(qr, r)
+			}
 			return true // keep iterating
 		})
 
