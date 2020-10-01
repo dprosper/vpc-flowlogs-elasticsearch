@@ -3,9 +3,7 @@
 
 The `vpc-flowlogs-elasticsearch` command line tool ("the tool"), lets you read your [VPC Flow Logs](https://cloud.ibm.com/docs/vpc?topic=vpc-flow-logs) from a Cloud Object Storage (COS) Bucket and index them to an Elasticsearch cluster running in the IBM Cloud. The tool also includes a basic search/results capability.  
 
-<p style="text-align: center;">
   ![Architecture](docs/architecture.png)
-</p>
 
 This repository assumes that you have an existing VPC that is configured with a Flow Logs collector(1) to write to a COS bucket(2). The tool requires: 
   - a second bucket(5) to be created within the same COS instance to store all flow logs that have previously been indexed. 
