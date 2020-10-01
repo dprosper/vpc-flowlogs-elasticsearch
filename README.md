@@ -101,7 +101,7 @@ Create the Elasticsearch cluster.
 
 ## Create a bucket for storing indexed logs
 
-The tool will index all logs found in the COS bucket that is used for your VPC Flow Logs, as each log is indexed it is deleted and move it to another bucket, you  need to provide a destination bucket for all the Flow Logs that have already been indexed. It needs to exist in the same instance as the bucket used by VPC Flow Logs. 
+The tool will index all logs found in the COS bucket that is used for your VPC Flow Logs, as each log is indexed it is deleted and moved to another bucket, you need to provide a destination bucket for all the Flow Logs that have already been indexed. It needs to exist in the same instance as the bucket used by the Flow Logs you intend on indexing. 
 
 
 ## How to use:
