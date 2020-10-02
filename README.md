@@ -56,17 +56,17 @@ You can install the binary from source [here](https://github.com/dprosper/vpc-fl
 
   Mac OS
   ```sh
-  docker run --rm -v "$PWD":/usr/src/vpc-flowlogs-elasticsearch -w /usr/src/vpc-flowlogs-elasticsearch -e GOOS=darwin -e GOARCH=amd64 golang:latest go build -v
+  docker run --rm -v "$PWD":/usr/src/vpc-flowlogs-elasticsearch -w /usr/src/vpc-flowlogs-elasticsearch -e GOOS=darwin -e GOARCH=amd64 golang:latest go build -v -o build/vpc-flowlogs-elasticsearch
   ```
 
   Linux
   ```sh
-  docker run --rm -v "$PWD":/usr/src/vpc-flowlogs-elasticsearch -w /usr/src/vpc-flowlogs-elasticsearch -e GOOS=linux -e GOARCH=amd64 golang:latest go build -v
+  docker run --rm -v "$PWD":/usr/src/vpc-flowlogs-elasticsearch -w /usr/src/vpc-flowlogs-elasticsearch -e GOOS=linux -e GOARCH=amd64 golang:latest go build -v -o build/vpc-flowlogs-elasticsearch
   ```
 
   Windows
   ```sh
-  docker run --rm -v "$PWD":/usr/src/vpc-flowlogs-elasticsearch -w /usr/src/vpc-flowlogs-elasticsearch -e GOOS=windows -e GOARCH=amd64 golang:latest go build -v
+  docker run --rm -v "$PWD":/usr/src/vpc-flowlogs-elasticsearch -w /usr/src/vpc-flowlogs-elasticsearch -e GOOS=windows -e GOARCH=amd64 golang:latest go build -v -o build/vpc-flowlogs-elasticsearch
   ```
 
 ## Provision a Databases for Elasticsearch instance
