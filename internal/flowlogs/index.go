@@ -50,7 +50,6 @@ func Index(trace bool) string {
 }
 
 func validateKey(key string) bool {
-	log.Println(key)
 	if key == "" {
 		return false
 	}
@@ -113,9 +112,6 @@ func bulkIndex(trace bool) error {
 	}
 	if !validateKey(esCert) {
 		log.Fatalln("elasticsearch.certificate.certificate_base64 or ELASTICSEARCH_CERTIFICATE_CERTIFICATE_BASE64 not provided ")
-	}
-	if indexedBucketName != "" {
-		return nil
 	}
 
 	cert, err := base64.StdEncoding.DecodeString(esCert)
