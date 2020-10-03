@@ -36,7 +36,7 @@ func InitLogger() {
 		zapcore.NewCore(getFileEncoder(), getLogWriter("system.log"), zapcore.DebugLevel),
 		zapcore.NewCore(getConsoleEncoder(), zapcore.AddSync(os.Stdout), zapcore.InfoLevel),
 	)
-	SystemLogger = zap.New(systemCore, zap.AddCaller())
+	SystemLogger = zap.New(systemCore)
 	defer SystemLogger.Sync()
 
 	errorCore := zapcore.NewCore(getFileEncoder(), getLogWriter("error.log"), zapcore.DebugLevel)

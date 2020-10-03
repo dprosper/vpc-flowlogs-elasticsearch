@@ -22,7 +22,6 @@ import (
 	"encoding/base64"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"os"
 	"runtime"
 	"strings"
@@ -95,9 +94,6 @@ func bulkIndex(trace bool) error {
 			Username:  esUsername,
 			Password:  esPassword,
 			CACert:    cert,
-			Logger: &estransport.ColorLogger{
-				Output: os.Stdout,
-			},
 		}
 	}
 
@@ -115,7 +111,7 @@ func bulkIndex(trace bool) error {
 
 	body, _ := ioutil.ReadAll(res.Body)
 	serverVersion := gjson.GetBytes(body, "version.number")
-	logger.SystemLogger.Info("Client Info", zap.String("Client version:", elasticsearch.Version), zap.String("Server version:", serverVersion.String()))
+	logger.SystemLogger.Debug("Client Info", zap.String("Client version:", elasticsearch.Version), zap.String("Server version:", serverVersion.String()))
 
 	res, err = esClient.Indices.Exists([]string{esIndexName})
 	if res.Status() != "200 OK" {
@@ -179,12 +175,13 @@ func bulkIndex(trace bool) error {
 			return fmt.Errorf("cosClient.ListObjectsV2: %v", err)
 		}
 
-		logger.SystemLogger.Info(fmt.Sprintf("Bulk indexing 25 or less objects from: %s", sourceBucketName))
+		logger.SystemLogger.Info(fmt.Sprintf("Adding 25 or less objects to bulk index from: %s", sourceBucketName))
 
 		for _, object := range objects.Contents {
-
 			key := *object.Key
 			sha256DocumentID := fmt.Sprintf("%x", sha256.Sum256([]byte(key)))
+
+			logger.SystemLogger.Debug(fmt.Sprintf("[%s] Read from COS bucket.", sha256DocumentID))
 
 			objectInput := s3.GetObjectInput{
 				Bucket: aws.String(sourceBucketName),
@@ -209,7 +206,7 @@ func bulkIndex(trace bool) error {
 
 					OnSuccess: func(ctx context.Context, item esutil.BulkIndexerItem, res esutil.BulkIndexerResponseItem) {
 						atomic.AddUint64(&countSuccessful, 1)
-						// logger.SystemLogger.Debug(fmt.Sprintf("[%s] Indexed.", sha256DocumentID))
+						logger.SystemLogger.Info(fmt.Sprintf("[%s] Successfully added to index.", sha256DocumentID))
 
 						copyObjectInput := s3.CopyObjectInput{
 							Bucket:     aws.String(indexedBucketName),
@@ -220,6 +217,8 @@ func bulkIndex(trace bool) error {
 						if err != nil {
 							logger.ErrorLogger.Error(fmt.Sprintf("[%s] ERROR copying object: %s", sha256DocumentID, err))
 						} else {
+							logger.SystemLogger.Debug(fmt.Sprintf("[%s] Copied to: %s.", sha256DocumentID, indexedBucketName))
+
 							deleteObjectInput := s3.DeleteObjectInput{
 								Bucket: aws.String(sourceBucketName),
 								Key:    aws.String(key),
@@ -228,6 +227,7 @@ func bulkIndex(trace bool) error {
 							if err != nil {
 								logger.ErrorLogger.Error(fmt.Sprintf("[%s] ERROR deleting object: %s", sha256DocumentID, err))
 							}
+							logger.SystemLogger.Debug(fmt.Sprintf("[%s] Deleted from: %s.", sha256DocumentID, sourceBucketName))
 						}
 
 					},
@@ -236,7 +236,6 @@ func bulkIndex(trace bool) error {
 						if err != nil {
 							logger.ErrorLogger.Error(fmt.Sprintf("[%s] ERROR: %s", sha256DocumentID, err))
 						} else {
-							log.Printf("ERROR: %s: %s", res.Error.Type, res.Error.Reason)
 							logger.ErrorLogger.Error(fmt.Sprintf("[%s] ERROR: %s: %s", sha256DocumentID, res.Error.Type, res.Error.Reason))
 						}
 					},
@@ -249,7 +248,7 @@ func bulkIndex(trace bool) error {
 
 		}
 
-		// logger.SystemLogger.Info(fmt.Sprintf("Completed bulk indexing of 25 or less objects from: %s", sourceBucketName))
+		logger.SystemLogger.Debug(fmt.Sprintf("Added 25 or less objects to bulk index from: %s", sourceBucketName))
 
 		if *objects.IsTruncated {
 			continuationToken = *objects.NextContinuationToken
