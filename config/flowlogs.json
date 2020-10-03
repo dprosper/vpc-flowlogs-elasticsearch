@@ -17,8 +17,7 @@
     "serviceEndpoint": "<provide_value>",
     "bucketsLocation": "<provide_value>",
     "sourceBucketName": "<provide_value>",
-    "indexedBucketName": "<provide_value>",
-    "serviceInstanceID": "<provide_value>"
+    "indexedBucketName": "<provide_value>"
   },
   "ibmcloud": {
     "iamUrl": "https://iam.cloud.ibm.com/identity/token"
