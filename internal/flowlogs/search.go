@@ -22,6 +22,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"os"
 	"strings"
 
@@ -58,6 +59,16 @@ func search(queryName string, trace bool) (result *map[string]interface{}) {
 		esCert      = viper.GetString("elasticsearch.certificate.certificate_base64")
 		cfg         elasticsearch.Config
 	)
+
+	if !validateKey(esUsername) {
+		log.Fatalln("elasticsearch.username or ELASTICSEARCH_USERNAME not provided ")
+	}
+	if !validateKey(esPassword) {
+		log.Fatalln("elasticsearch.password or ELASTICSEARCH_PASSWORD not provided ")
+	}
+	if !validateKey(esCert) {
+		log.Fatalln("elasticsearch.certificate.certificate_base64 or ELASTICSEARCH_CERTIFICATE_CERTIFICATE_BASE64 not provided ")
+	}
 
 	cert, err := base64.StdEncoding.DecodeString(esCert)
 	if err != nil {

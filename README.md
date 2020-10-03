@@ -111,7 +111,9 @@ The tool will index all logs found in the COS bucket that is used for your VPC F
 1. Copy the `config/flowlogs.json` to your the `$HOME` directory of the current user. 
 2. Edit the `~./flowlogs.json` file and replace all instances of `<provide_value>` with the relevant values for COS and Elasticsearch captured above.
  
- > You can place the `flowlogs.json` file in any directory of your choice and pass the `--config` flag with the location of the file to any of the commands below.
+> You can place the `flowlogs.json` file in any directory of your choice and pass the `--config` flag with the location of the file to any of the commands below.
+
+> It is also possible to set environment variables instead of using the `flowlogs.json` config file. Environment variables will match the name of the attributes in the json with `_` replacing the `.`, i.e. `cos.serviceEndpoint` -->  `COS_SERVICEENDPOINT` 
 
 ### Indexing
 

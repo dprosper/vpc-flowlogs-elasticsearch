@@ -22,6 +22,7 @@ import (
 	"encoding/base64"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"os"
 	"runtime"
 	"strings"
@@ -48,6 +49,14 @@ func Index(trace bool) string {
 	return "done"
 }
 
+func validateKey(key string) bool {
+	log.Println(key)
+	if key == "" {
+		return false
+	}
+	return true
+}
+
 // bulkIndex function
 func bulkIndex(trace bool) error {
 
@@ -68,6 +77,46 @@ func bulkIndex(trace bool) error {
 		esCert            = viper.GetString("elasticsearch.certificate.certificate_base64")
 		cfg               elasticsearch.Config
 	)
+
+	if !validateKey(apiKey) {
+		log.Fatalln("cos.apikey or COS_APIKEY not provided ")
+	}
+	if !validateKey(serviceInstanceID) {
+		log.Fatalln("cos.resource_instance_id or COS_RESOURCE_INSTANCE_ID not provided ")
+	}
+	if !validateKey(authEndpoint) {
+		log.Fatalln("ibmcloud.iamUrl or IBMCLOUD_IAMURL not provided ")
+	}
+	if !validateKey(serviceEndpoint) {
+		log.Fatalln("cos.serviceEndpoint or COS_SERVICEENDPOINT not provided ")
+	}
+	if !validateKey(bucketsLocation) {
+		log.Fatalln("cos.bucketsLocation or COS_BUCKETSLOCATION not provided ")
+	}
+	if !validateKey(sourceBucketName) {
+		log.Fatalln("cos.sourceBucketName or COS_SOURCEBUCKETNAME not provided ")
+	}
+	if !validateKey(indexedBucketName) {
+		log.Fatalln("cos.indexedBucketName or COS_INDEXEDBUCKETNAME not provided ")
+	}
+	if !validateKey(esIndexName) {
+		log.Fatalln("elasticsearch.indexName or ELASTICSEARCH_INDEXNAME not provided ")
+	}
+	if !validateKey(esIndexMapping) {
+		log.Fatalln("elasticsearch.indexMapping or ELASTICSEARCH_INDEXMAPPING not provided ")
+	}
+	if !validateKey(esUsername) {
+		log.Fatalln("elasticsearch.username or ELASTICSEARCH_USERNAME not provided ")
+	}
+	if !validateKey(esPassword) {
+		log.Fatalln("elasticsearch.password or ELASTICSEARCH_PASSWORD not provided ")
+	}
+	if !validateKey(esCert) {
+		log.Fatalln("elasticsearch.certificate.certificate_base64 or ELASTICSEARCH_CERTIFICATE_CERTIFICATE_BASE64 not provided ")
+	}
+	if indexedBucketName != "" {
+		return nil
+	}
 
 	cert, err := base64.StdEncoding.DecodeString(esCert)
 	if err != nil {

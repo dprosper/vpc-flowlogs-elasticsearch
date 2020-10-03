@@ -19,6 +19,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strings"
 
 	"github.com/dprosper/vpc-flowlogs-elasticsearch/internal/logger"
 	"github.com/spf13/cobra"
@@ -64,9 +65,10 @@ func initConfig() {
 
 	viper.AutomaticEnv()
 	logger.InitLogger()
+	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 
 	err := viper.ReadInConfig()
 	if err != nil {
-		log.Fatalln("configuration file not found or not provided. see help")
+		log.Println("warning: configuration file not found, expecting environment variables to be set.")
 	}
 }
