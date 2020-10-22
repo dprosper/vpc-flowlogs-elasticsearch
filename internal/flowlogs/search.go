@@ -52,7 +52,7 @@ func search(queryName string, trace bool) (result *map[string]interface{}) {
 	result = nil
 
 	var (
-		esIndexName = `ibm_vpc_flowlogs_v1`
+		esIndexName = viper.GetString("elasticsearch.indexName")
 		esAddresses []string
 		esUsername  = viper.GetString("elasticsearch.username")
 		esPassword  = viper.GetString("elasticsearch.password")
@@ -68,6 +68,9 @@ func search(queryName string, trace bool) (result *map[string]interface{}) {
 	}
 	if !validateKey(esCert) {
 		log.Fatalln("elasticsearch.certificate.certificate_base64 or ELASTICSEARCH_CERTIFICATE_CERTIFICATE_BASE64 not provided ")
+	}
+	if !validateKey(esIndexName) {
+		log.Fatalln("elasticsearch.indexName or ELASTICSEARCH_INDEXNAME not provided ")
 	}
 
 	cert, err := base64.StdEncoding.DecodeString(esCert)
