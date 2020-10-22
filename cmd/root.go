@@ -71,4 +71,15 @@ func initConfig() {
 	if err != nil {
 		log.Println("warning: configuration file not found, expecting environment variables to be set.")
 	}
+
+	if _, err := os.Stat("config/queries.json"); os.IsNotExist(err) {
+		log.Println("warning: unable to find config/queries.json, make sure the directory exist and is located at the same level as the binary you are running.")
+		os.Exit(1)
+	}
+
+	if _, err := os.Stat("config/flowlogs-v1.json"); os.IsNotExist(err) {
+		log.Println("warning: unable to find config/flowlogs-v1.json, make sure the directory exist and is located at the same level as the binary you are running.")
+		os.Exit(1)
+	}
+
 }
