@@ -160,7 +160,7 @@ func bulkIndex(trace bool, recreateIndex bool) error {
 
 	res, err = esClient.Indices.Exists([]string{esIndexName})
 
-	if res.Status() == "200 OK" {
+	if res.Status() == "200 OK" && recreateIndex {
 		res, err = esClient.Indices.Delete([]string{esIndexName}, esClient.Indices.Delete.WithIgnoreUnavailable(true))
 		if err != nil || res.IsError() {
 			logger.ErrorLogger.Error("Cannot delete index", zap.String("error: ", err.Error()))
@@ -170,7 +170,7 @@ func bulkIndex(trace bool, recreateIndex bool) error {
 		logger.SystemLogger.Debug(fmt.Sprintf("Deleted index: %s", esIndexName))
 	}
 
-	if res.Status() != "200 OK" && recreateIndex {
+	if res.Status() != "200 OK" || recreateIndex {
 		indexMapping, _ := ioutil.ReadFile("config/" + esIndexMapping)
 
 		res, err = esClient.Indices.Create(esIndexName, esClient.Indices.Create.WithBody(bytes.NewReader(indexMapping)))
