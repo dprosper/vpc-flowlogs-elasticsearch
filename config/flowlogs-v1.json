@@ -68,7 +68,7 @@
               }
             },
             "end_time": {
-              "type": "text"
+              "type": "date"
             },
             "ether_type": {
               "type": "text",
@@ -98,7 +98,7 @@
               "type": "long"
             },
             "start_time": {
-              "type": "text"
+              "type": "date"
             },
             "target_ip": {
               "type": "text",

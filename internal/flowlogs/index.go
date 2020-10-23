@@ -162,18 +162,13 @@ func bulkIndex(trace bool) error {
 	if res.Status() != "200 OK" {
 		indexMapping, _ := ioutil.ReadFile("config/" + esIndexMapping)
 
-		res, err = esClient.Indices.Delete([]string{esIndexName}, esClient.Indices.Delete.WithIgnoreUnavailable(true))
-		if err != nil || res.IsError() {
-			logger.ErrorLogger.Error("Cannot delete index", zap.String("error: ", err.Error()))
-			return fmt.Errorf("esClient.Indices.Delete: %v", err)
-		}
-		res.Body.Close()
-
 		res, err = esClient.Indices.Create(esIndexName, esClient.Indices.Create.WithBody(bytes.NewReader(indexMapping)))
 		if err != nil || res.IsError() {
 			logger.ErrorLogger.Error("Cannot create index", zap.String("error: ", err.Error()))
 			return fmt.Errorf("esClient.Indices.Create: %v", err)
 		}
+		logger.SystemLogger.Debug(fmt.Sprintf("Created a new index: %s", esIndexName))
+
 		res.Body.Close()
 	}
 
@@ -241,13 +236,16 @@ func bulkIndex(trace bool) error {
 
 			flowlog, _ := ioutil.ReadAll(res.Body)
 
+			flowlog1 := strings.Replace(string(flowlog), "\"start_time\":\"\"", "\"start_time\":null", -1)
+			flowlog2 := strings.Replace(string(flowlog1), "\"end_time\":\"\"", "\"end_time\":null", -1)
+
 			bierr := bi.Add(
 				context.Background(),
 				esutil.BulkIndexerItem{
 					Action:       "index",
 					DocumentID:   sha256DocumentID,
 					DocumentType: "flowlog",
-					Body:         strings.NewReader(string(flowlog)),
+					Body:         strings.NewReader(flowlog2),
 
 					OnSuccess: func(ctx context.Context, item esutil.BulkIndexerItem, res esutil.BulkIndexerResponseItem) {
 						atomic.AddUint64(&countSuccessful, 1)

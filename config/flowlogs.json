@@ -9,7 +9,7 @@
       "name": "<provide_value>"
     },
     "indexName": "ibm_vpc_flowlogs_v1",
-    "indexMapping": "flowslogs-v1.json"
+    "indexMapping": "flowlogs-v1.json"
   },
   "cos": {
     "apikey": "<provide_value>",
