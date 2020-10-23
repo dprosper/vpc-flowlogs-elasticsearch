@@ -25,7 +25,7 @@ var indexCmd = &cobra.Command{
 	Use:   "index",
 	Short: "Reads VPC flowlogs from COS and imports them in Elasticsearch.",
 	Run: func(cmd *cobra.Command, args []string) {
-		flowlogs.Index(trace)
+		flowlogs.Index(trace, recreateIndex)
 	},
 }
 
@@ -33,4 +33,5 @@ func init() {
 	rootCmd.AddCommand(indexCmd)
 
 	indexCmd.Flags().BoolVar(&trace, "trace", false, "When set will add elasticsearch request and response body to the output")
+	indexCmd.Flags().BoolVar(&recreateIndex, "recreateIndex", false, "When set it will delete the elasticsearch index and recreate it")
 }

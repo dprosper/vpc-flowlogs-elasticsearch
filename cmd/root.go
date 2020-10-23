@@ -28,6 +28,7 @@ import (
 
 var cfgFile string
 var trace bool
+var recreateIndex bool
 var query string
 
 var rootCmd = &cobra.Command{

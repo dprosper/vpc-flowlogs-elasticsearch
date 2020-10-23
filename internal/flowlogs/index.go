@@ -44,8 +44,8 @@ import (
 )
 
 // Index function
-func Index(trace bool) string {
-	bulkIndex(trace)
+func Index(trace bool, recreateIndex bool) string {
+	bulkIndex(trace, recreateIndex)
 	return "done"
 }
 
@@ -57,7 +57,7 @@ func validateKey(key string) bool {
 }
 
 // bulkIndex function
-func bulkIndex(trace bool) error {
+func bulkIndex(trace bool, recreateIndex bool) error {
 
 	var (
 		countSuccessful   uint64
@@ -159,7 +159,18 @@ func bulkIndex(trace bool) error {
 	logger.SystemLogger.Debug("Client Info", zap.String("Client version:", elasticsearch.Version), zap.String("Server version:", serverVersion.String()))
 
 	res, err = esClient.Indices.Exists([]string{esIndexName})
-	if res.Status() != "200 OK" {
+
+	if res.Status() == "200 OK" {
+		res, err = esClient.Indices.Delete([]string{esIndexName}, esClient.Indices.Delete.WithIgnoreUnavailable(true))
+		if err != nil || res.IsError() {
+			logger.ErrorLogger.Error("Cannot delete index", zap.String("error: ", err.Error()))
+			return fmt.Errorf("esClient.Indices.Delete: %v", err)
+		}
+		res.Body.Close()
+		logger.SystemLogger.Debug(fmt.Sprintf("Deleted index: %s", esIndexName))
+	}
+
+	if res.Status() != "200 OK" && recreateIndex {
 		indexMapping, _ := ioutil.ReadFile("config/" + esIndexMapping)
 
 		res, err = esClient.Indices.Create(esIndexName, esClient.Indices.Create.WithBody(bytes.NewReader(indexMapping)))
