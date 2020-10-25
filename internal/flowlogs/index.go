@@ -47,7 +47,10 @@ import (
 
 // Index function
 func Index(trace bool, recreateIndex bool) string {
-	bulkIndex(trace, recreateIndex)
+	err := bulkIndex(trace, recreateIndex)
+	if err != nil {
+		fmt.Println(err)
+	}
 	return "done"
 }
 
