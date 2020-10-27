@@ -17,11 +17,13 @@ package flowlogs
 
 import (
 	"bytes"
+	"compress/gzip"
 	"context"
 	"crypto/sha256"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"log"
 	"os"
@@ -33,6 +35,7 @@ import (
 
 	"github.com/IBM/ibm-cos-sdk-go/aws"
 	"github.com/IBM/ibm-cos-sdk-go/aws/credentials/ibmiam"
+	"github.com/IBM/ibm-cos-sdk-go/aws/request"
 	"github.com/IBM/ibm-cos-sdk-go/aws/session"
 	"github.com/IBM/ibm-cos-sdk-go/service/s3"
 	"github.com/dprosper/vpc-flowlogs-elasticsearch/internal/logger"
@@ -284,7 +287,10 @@ func bulkIndex(trace bool, recreateIndex bool) error {
 				Key:    aws.String(key),
 			}
 
-			res, err := cosClient.GetObject(&objectInput)
+			res, err := cosClient.GetObjectWithContext(context.Background(), &objectInput, func(r *request.Request) {
+				// Prevent the client from uncompressing on the fly (https://github.com/aws/aws-sdk-go/issues/1292#issuecomment-303550435)
+				r.HTTPRequest.Header.Add("Accept-Encoding", "gzip")
+			})
 			if err != nil {
 				logger.ErrorLogger.Error(fmt.Sprintf("[%s] ERROR: %s", *aws.String(key), err))
 				continue
@@ -292,19 +298,23 @@ func bulkIndex(trace bool, recreateIndex bool) error {
 
 			flowlog, _ := ioutil.ReadAll(res.Body)
 
-			version := gjson.GetBytes(flowlog, "version").String()
-			collectorCrn := gjson.GetBytes(flowlog, "collector_crn").String()
-			attachedEndpointType := gjson.GetBytes(flowlog, "attached_endpoint_type").String()
-			networkInterfaceID := gjson.GetBytes(flowlog, "network_interface_id").String()
-			instanceCrn := gjson.GetBytes(flowlog, "instance_crn").String()
-			vpcCrn := gjson.GetBytes(flowlog, "vpc_crn").String()
-			captureStartTime := gjson.GetBytes(flowlog, "capture_start_time").String()
-			captureEndTime := gjson.GetBytes(flowlog, "capture_end_time").String()
-			state := gjson.GetBytes(flowlog, "state").String()
-			numberOfFlowLogs := gjson.GetBytes(flowlog, "number_of_flow_logs").Int()
+			// gunzip the object
+			gzipObject, _ := gzip.NewReader(bytes.NewBuffer(flowlog))
+			stringBuilder := new(strings.Builder)
+			io.Copy(stringBuilder, gzipObject)
 
-			flowlogs := gjson.GetBytes(flowlog, "flow_logs")
-			flowlogsCount := gjson.GetBytes(flowlog, "flow_logs.#").Int()
+			version := gjson.Get(stringBuilder.String(), "version").String()
+			collectorCrn := gjson.Get(stringBuilder.String(), "collector_crn").String()
+			attachedEndpointType := gjson.Get(stringBuilder.String(), "attached_endpoint_type").String()
+			networkInterfaceID := gjson.Get(stringBuilder.String(), "network_interface_id").String()
+			instanceCrn := gjson.Get(stringBuilder.String(), "instance_crn").String()
+			vpcCrn := gjson.Get(stringBuilder.String(), "vpc_crn").String()
+			captureStartTime := gjson.Get(stringBuilder.String(), "capture_start_time").String()
+			captureEndTime := gjson.Get(stringBuilder.String(), "capture_end_time").String()
+			state := gjson.Get(stringBuilder.String(), "state").String()
+			numberOfFlowLogs := gjson.Get(stringBuilder.String(), "number_of_flow_logs").Int()
+			flowlogs := gjson.Get(stringBuilder.String(), "flow_logs")
+			flowlogsCount := gjson.Get(stringBuilder.String(), "flow_logs.#").Int()
 
 			var count int64
 			count = 0
