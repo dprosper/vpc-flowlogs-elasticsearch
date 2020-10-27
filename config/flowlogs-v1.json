@@ -80,7 +80,7 @@
               }
             },
             "initiator_ip": {
-              "type": "text",
+              "type": "ip",
               "fields": {
                 "keyword": {
                   "type": "keyword",
@@ -101,7 +101,7 @@
               "type": "date"
             },
             "target_ip": {
-              "type": "text",
+              "type": "ip",
               "fields": {
                 "keyword": {
                   "type": "keyword",
