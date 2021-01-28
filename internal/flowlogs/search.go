@@ -27,8 +27,8 @@ import (
 	"strings"
 
 	"github.com/dprosper/vpc-flowlogs-elasticsearch/internal/logger"
-	"github.com/elastic/go-elasticsearch/v6"
-	"github.com/elastic/go-elasticsearch/v6/estransport"
+	"github.com/elastic/go-elasticsearch/v7"
+	"github.com/elastic/go-elasticsearch/v7/estransport"
 	"github.com/manifoldco/promptui"
 	"github.com/spf13/viper"
 	"github.com/tidwall/gjson"
