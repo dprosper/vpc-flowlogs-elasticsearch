@@ -1,5 +1,6 @@
 {
   "mappings": {
+    "flowlog": {
       "properties": {
         "attached_endpoint_type": {
           "type": "text",
@@ -171,5 +172,6 @@
           }
         }
       }
+    }
   }
 }

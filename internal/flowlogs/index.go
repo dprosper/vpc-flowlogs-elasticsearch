@@ -24,6 +24,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
+	"net/url"
 	"os"
 	"runtime"
 	"strconv"
@@ -37,9 +38,9 @@ import (
 	"github.com/IBM/ibm-cos-sdk-go/service/s3"
 	"github.com/dprosper/vpc-flowlogs-elasticsearch/internal/logger"
 	"github.com/dustin/go-humanize"
-	"github.com/elastic/go-elasticsearch/v6"
-	"github.com/elastic/go-elasticsearch/v6/estransport"
-	"github.com/elastic/go-elasticsearch/v6/esutil"
+	"github.com/elastic/go-elasticsearch/v7"
+	"github.com/elastic/go-elasticsearch/v7/estransport"
+	"github.com/elastic/go-elasticsearch/v7/esutil"
 	"github.com/spf13/viper"
 	"github.com/tidwall/gjson"
 	"go.uber.org/zap"
@@ -106,6 +107,7 @@ func bulkIndex(trace bool, recreateIndex bool) error {
 
 	var (
 		countSuccessful   uint64
+		countFailures     uint64
 		apiKey            = viper.GetString("cos.apikey")
 		serviceInstanceID = viper.GetString("cos.resource_instance_id")
 		authEndpoint      = viper.GetString("ibmcloud.iamUrl")
@@ -219,9 +221,13 @@ func bulkIndex(trace bool, recreateIndex bool) error {
 		indexMapping, _ := ioutil.ReadFile("config/" + esIndexMapping)
 
 		res, err = esClient.Indices.Create(esIndexName, esClient.Indices.Create.WithBody(bytes.NewReader(indexMapping)))
-		if err != nil || res.IsError() {
+		if err != nil {
 			logger.ErrorLogger.Error("Cannot create index", zap.String("error: ", err.Error()))
 			return fmt.Errorf("esClient.Indices.Create: %v", err)
+		}
+		if res.IsError() {
+			logger.ErrorLogger.Error("Cannot create index", zap.String("error: ", res.String()))
+			return fmt.Errorf("esClient.Indices.Create: %v", res)
 		}
 		logger.SystemLogger.Debug(fmt.Sprintf("Created a new index: %s", esIndexName))
 
@@ -257,6 +263,12 @@ func bulkIndex(trace bool, recreateIndex bool) error {
 	previousKey := ""
 
 	start := time.Now().UTC()
+
+	var objectsCount int64
+	objectsCount = 0
+	var objectsFlowlogsEmptyCount int64
+	objectsFlowlogsEmptyCount = 0
+
 	for {
 		listInput := &s3.ListObjectsV2Input{
 			Bucket:            aws.String(sourceBucketName),
@@ -274,7 +286,16 @@ func bulkIndex(trace bool, recreateIndex bool) error {
 		logger.SystemLogger.Info(fmt.Sprintf("Adding 25 or less objects to bulk index from: %s", sourceBucketName))
 
 		for _, object := range objects.Contents {
+			objectsCount++
 			key := *object.Key
+
+			// This section is used to handle a suspected bug in the cos sdk whereas the Copyobject fails if using the key string as is, it needs to be transformed to have the : double encoded.
+			tmpKey1 := strings.Replace(key, "=", "-equal-", -1)
+			tmpKey2 := strings.Replace(tmpKey1, "/", "-slash-", -1)
+			tmpKey3 := url.QueryEscape(tmpKey2)
+			tmpKey4 := strings.Replace(tmpKey3, "-equal-", "=", -1)
+			tmpKey := strings.Replace(tmpKey4, "-slash-", "/", -1)
+
 			sha256DocumentID := fmt.Sprintf("%x", sha256.Sum256([]byte(key)))
 
 			logger.SystemLogger.Debug(fmt.Sprintf("[%s] Read from COS bucket.", sha256DocumentID))
@@ -306,91 +327,125 @@ func bulkIndex(trace bool, recreateIndex bool) error {
 			flowlogs := gjson.GetBytes(flowlog, "flow_logs")
 			flowlogsCount := gjson.GetBytes(flowlog, "flow_logs.#").Int()
 
-			var count int64
-			count = 0
-			flowlogs.ForEach(func(_, value gjson.Result) bool {
-				count++
-
-				sha256DocumentIDCount := fmt.Sprintf("%s-%d", sha256DocumentID, count)
-
-				rawJSON := []byte(`[` + strings.Replace(string(value.String()), ":\"\"", ":null", -1) + `]`)
-				var flowLogs []FlowLogs
-				json.Unmarshal(rawJSON, &flowLogs)
-
-				flowlog3 := CosObject{
-					Version:              &version,
-					CollectorCrn:         &collectorCrn,
-					AttachedEndpointType: &attachedEndpointType,
-					NetworkInterfaceID:   &networkInterfaceID,
-					InstanceCrn:          &instanceCrn,
-					VpcCrn:               &vpcCrn,
-					CaptureStartTime:     &captureStartTime,
-					CaptureEndTime:       &captureEndTime,
-					State:                &state,
-					NumberOfFlowLogs:     &numberOfFlowLogs,
-					FlowLogs:             &flowLogs,
+			if flowlogsCount == 0 {
+				objectsFlowlogsEmptyCount++
+				copyObjectInput := s3.CopyObjectInput{
+					Bucket:     aws.String(indexedBucketName),
+					CopySource: aws.String(sourceBucketName + "/" + tmpKey),
+					Key:        aws.String(tmpKey),
 				}
-				b, _ := json.Marshal(flowlog3)
+				_, err := cosClient.CopyObject(&copyObjectInput)
+				if err != nil {
+					logger.ErrorLogger.Error(fmt.Sprintf("[%s] ERROR copying object: from %s to %s with key %s and tmpkey %s error %s", sha256DocumentID, sourceBucketName, indexedBucketName, key, tmpKey, err))
+					// logger.ErrorLogger.Error(fmt.Sprintf("[%s] ERROR copying object: %s", sha256DocumentID, err))
+				} else {
+					logger.SystemLogger.Debug(fmt.Sprintf("[%s] Copied to: %s.", sha256DocumentID, indexedBucketName))
 
-				bierr := bi.Add(
-					context.Background(),
-					esutil.BulkIndexerItem{
-						Action:       "index",
-						DocumentID:   sha256DocumentIDCount,
-						DocumentType: "flowlog",
-						Body:         bytes.NewReader(b),
+					deleteObjectInput := s3.DeleteObjectInput{
+						Bucket: aws.String(sourceBucketName),
+						Key:    aws.String(key),
+					}
 
-						OnSuccess: func(ctx context.Context, item esutil.BulkIndexerItem, res esutil.BulkIndexerResponseItem) {
-							atomic.AddUint64(&countSuccessful, 1)
-							logger.SystemLogger.Info(fmt.Sprintf("[%s] Successfully added to index.", sha256DocumentIDCount))
+					logger.SystemLogger.Debug(fmt.Sprintf("[%s] Deleting object: %s also known as %s", sha256DocumentID, key, tmpKey))
 
-							logger.SystemLogger.Debug(fmt.Sprintf("item id: [%s] - res id: [%s] ", item.DocumentID, res.DocumentID))
+					_, err = cosClient.DeleteObject(&deleteObjectInput)
+					if err != nil {
+						logger.ErrorLogger.Error(fmt.Sprintf("[%s] ERROR deleting object: %s", sha256DocumentID, err))
+					}
+					logger.SystemLogger.Debug(fmt.Sprintf("[%s] Deleted object %s from: %s.", sha256DocumentID, key, sourceBucketName))
+				}
+			} else {
+				var count int64
+				count = 0
+				flowlogs.ForEach(func(_, value gjson.Result) bool {
+					count++
 
-							docID := strings.Split(item.DocumentID, "-")[1]
-							docIDInt, _ := strconv.ParseInt(docID, 10, 64)
+					sha256DocumentIDCount := fmt.Sprintf("%s-%d", sha256DocumentID, count)
 
-							if docIDInt == flowlogsCount {
+					rawJSON := []byte(`[` + strings.Replace(string(value.String()), ":\"\"", ":null", -1) + `]`)
+					var flowLogs []FlowLogs
+					json.Unmarshal(rawJSON, &flowLogs)
 
-								copyObjectInput := s3.CopyObjectInput{
-									Bucket:     aws.String(indexedBucketName),
-									CopySource: aws.String(sourceBucketName + "/" + key),
-									Key:        aws.String(key),
-								}
-								_, err := cosClient.CopyObject(&copyObjectInput)
-								if err != nil {
-									logger.ErrorLogger.Error(fmt.Sprintf("[%s] ERROR copying object: %s", sha256DocumentID, err))
-								} else {
-									logger.SystemLogger.Debug(fmt.Sprintf("[%s] Copied to: %s.", sha256DocumentID, indexedBucketName))
+					flowlog3 := CosObject{
+						Version:              &version,
+						CollectorCrn:         &collectorCrn,
+						AttachedEndpointType: &attachedEndpointType,
+						NetworkInterfaceID:   &networkInterfaceID,
+						InstanceCrn:          &instanceCrn,
+						VpcCrn:               &vpcCrn,
+						CaptureStartTime:     &captureStartTime,
+						CaptureEndTime:       &captureEndTime,
+						State:                &state,
+						NumberOfFlowLogs:     &numberOfFlowLogs,
+						FlowLogs:             &flowLogs,
+					}
+					b, _ := json.Marshal(flowlog3)
 
-									deleteObjectInput := s3.DeleteObjectInput{
-										Bucket: aws.String(sourceBucketName),
-										Key:    aws.String(key),
+					bierr := bi.Add(
+						context.Background(),
+						esutil.BulkIndexerItem{
+							Action:     "index",
+							DocumentID: sha256DocumentIDCount,
+							Body:       bytes.NewReader(b),
+
+							OnSuccess: func(ctx context.Context, item esutil.BulkIndexerItem, res esutil.BulkIndexerResponseItem) {
+								atomic.AddUint64(&countSuccessful, 1)
+								logger.SystemLogger.Info(fmt.Sprintf("[%s] Successfully added %s to index.", sha256DocumentID, sha256DocumentIDCount))
+
+								logger.SystemLogger.Debug(fmt.Sprintf("[%s] item id: [%s] - res id: [%s] ", sha256DocumentID, item.DocumentID, res.DocumentID))
+
+								docID := strings.Split(item.DocumentID, "-")[1]
+								docIDInt, _ := strconv.ParseInt(docID, 10, 64)
+
+								if docIDInt == flowlogsCount {
+
+									copyObjectInput := s3.CopyObjectInput{
+										Bucket:     aws.String(indexedBucketName),
+										CopySource: aws.String(sourceBucketName + "/" + tmpKey),
+										Key:        aws.String(tmpKey),
 									}
-									_, err = cosClient.DeleteObject(&deleteObjectInput)
+									_, err := cosClient.CopyObject(&copyObjectInput)
 									if err != nil {
-										logger.ErrorLogger.Error(fmt.Sprintf("[%s] ERROR deleting object: %s", sha256DocumentID, err))
+										// logger.ErrorLogger.Error(fmt.Sprintf("[%s] ERROR copying object: from %s to %s with key %s and tmpkey %s error %s", sha256DocumentID, sourceBucketName, indexedBucketName, key, tmpKey, err))
+										logger.ErrorLogger.Error(fmt.Sprintf("[%s] ERROR copying object: %s", sha256DocumentID, err))
+									} else {
+										logger.SystemLogger.Debug(fmt.Sprintf("[%s] Copied to: %s.", sha256DocumentID, indexedBucketName))
+
+										deleteObjectInput := s3.DeleteObjectInput{
+											Bucket: aws.String(sourceBucketName),
+											Key:    aws.String(key),
+										}
+
+										logger.SystemLogger.Debug(fmt.Sprintf("[%s] Deleting object: %s also known as %s", sha256DocumentID, key, tmpKey))
+
+										_, err = cosClient.DeleteObject(&deleteObjectInput)
+										if err != nil {
+											logger.ErrorLogger.Error(fmt.Sprintf("[%s] ERROR deleting object: %s", sha256DocumentID, err))
+										}
+										logger.SystemLogger.Debug(fmt.Sprintf("[%s] Deleted object %s from: %s.", sha256DocumentID, key, sourceBucketName))
 									}
-									logger.SystemLogger.Debug(fmt.Sprintf("[%s] Deleted from: %s.", sha256DocumentID, sourceBucketName))
 								}
-							}
 
+							},
+
+							OnFailure: func(ctx context.Context, item esutil.BulkIndexerItem, res esutil.BulkIndexerResponseItem, err error) {
+								atomic.AddUint64(&countFailures, 1)
+
+								if err != nil {
+									logger.ErrorLogger.Error(fmt.Sprintf("[%s] ERROR: %s", sha256DocumentID, err))
+								} else {
+									logger.ErrorLogger.Error(fmt.Sprintf("[%s] ERROR: %s: %s", sha256DocumentID, res.Error.Type, res.Error.Reason))
+								}
+							},
 						},
+					)
 
-						OnFailure: func(ctx context.Context, item esutil.BulkIndexerItem, res esutil.BulkIndexerResponseItem, err error) {
-							if err != nil {
-								logger.ErrorLogger.Error(fmt.Sprintf("[%s] ERROR: %s", sha256DocumentID, err))
-							} else {
-								logger.ErrorLogger.Error(fmt.Sprintf("[%s] ERROR: %s: %s", sha256DocumentID, res.Error.Type, res.Error.Reason))
-							}
-						},
-					},
-				)
-
-				if bierr != nil {
-					logger.ErrorLogger.Error("Unexpected error.", zap.String("error: ", err.Error()))
-				}
-				return true // keep iterating
-			})
+					if bierr != nil {
+						logger.ErrorLogger.Error(fmt.Sprintf("[%s] Unexpected error. %s", sha256DocumentID, err.Error()))
+					}
+					return true // keep iterating
+				})
+			}
 		}
 
 		logger.SystemLogger.Debug(fmt.Sprintf("Added 25 or less objects to bulk index from: %s", sourceBucketName))
@@ -409,11 +464,15 @@ func bulkIndex(trace bool, recreateIndex bool) error {
 	biStats := bi.Stats()
 
 	duration := time.Since(start)
-	logger.SystemLogger.Info(fmt.Sprintf("Indexed [%s] documents with [%s] errors in %s (%s docs/sec)",
+	logger.SystemLogger.Info(fmt.Sprintf("Indexed [%s] objects [%s] empty flowlogs objects [%s] documents with [%s] errors in %s (%s docs/sec) with success count %s and failures count %s",
+		humanize.Comma(int64(objectsCount)),
+		humanize.Comma(int64(objectsFlowlogsEmptyCount)),
 		humanize.Comma(int64(biStats.NumFlushed)),
 		humanize.Comma(int64(biStats.NumFailed)),
 		duration.Truncate(time.Millisecond),
-		humanize.Comma(int64(1000.0/float64(duration/time.Millisecond)*float64(biStats.NumFlushed)))))
+		humanize.Comma(int64(1000.0/float64(duration/time.Millisecond)*float64(biStats.NumFlushed))),
+		humanize.Comma(int64(countSuccessful)),
+		humanize.Comma(int64(countFailures))))
 
 	return nil
 }

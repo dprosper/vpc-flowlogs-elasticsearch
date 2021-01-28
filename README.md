@@ -11,7 +11,7 @@ This repository assumes that you have an existing VPC that is configured with a 
 
 When executed the tool will: 
   - read(5) all flow logs objects from the flow logs bucket(2), 
-  - index to Elasticsearch(6),
+  - index to Elasticsearch(7.x),
   - delete the indexed objects from the flow logs bucket(2) and write them to the indexed flow logs bucket(7),
   - once indexed in Elasticsearch the tool can be used to query Elasticsearch or another tool such as Postman can also be used(8).
 
@@ -25,9 +25,10 @@ In addition to having an existing VPC in IBM Cloud and configured VPC Flow Logs,
 - [Account with IBM Cloud](https://cloud.ibm.com)
 - [Existing VPC](https://cloud.ibm.com/vpc-ext/overview)
 - [VPC Flow Logs already configured to write to a COS Bucket](https://cloud.ibm.com/vpc-ext/network/flowLogs)
--	[IBM Cloud Databases for Elasticsearch](https://cloud.ibm.com/catalog/services/databases-for-elasticsearch) version 6.8
-  - The Elasticsearch client is specific to version 6.x
-
+-	[IBM Cloud Databases for Elasticsearch](https://cloud.ibm.com/catalog/services/databases-for-elasticsearch) version 7.9
+  - The Elasticsearch client is specific to version 7.x
+  > Note: Previous version supporting Elasticsearch 6.x is available under the `es_6` branch of this repository.
+  
 - Install the following tools as needed: 
   - [IBM Cloud CLI](https://cloud.ibm.com/docs/cli?topic=cloud-cli-install-ibmcloud-cli) (If you prefer the command line over using the web console)
   -	[Go](https://golang.org/doc/install) version 1.15.x (If you choose to build the tool from source)
